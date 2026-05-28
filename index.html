@@ -3,7 +3,208 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Personal Budgeting</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
-  <body></body>
+  <body>
+    <header class="topbar">
+      <div class="header-copy">
+        <h1>Personal Budgeting</h1>
+        <p>Track expenses and manage your monthly budget with simple methods</p>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" id="setupBudgetButton">+ Monthly Setup</button>
+      </div>
+    </header>
+
+    <main class="page">
+      <section class="dashboard-section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Finance Dashboard</p>
+            <h2 id="viewedMonthTitle">Current month</h2>
+          </div>
+        </div>
+
+        <div class="summary-grid">
+          <article class="summary-card">
+            <div class="card-top">
+              <span>Monthly Income</span>
+              <strong class="card-icon">💰</strong>
+            </div>
+            <strong id="incomeText">Rp 0</strong>
+            <p>Current month budget</p>
+          </article>
+
+          <article class="summary-card">
+            <div class="card-top">
+              <span>Total Expenses</span>
+              <strong class="card-icon">🧾</strong>
+            </div>
+            <strong id="expenseText">Rp 0</strong>
+            <p>Money spent this month</p>
+          </article>
+
+          <article class="summary-card">
+            <div class="card-top">
+              <span>Remaining Balance</span>
+              <strong class="card-icon">💵</strong>
+            </div>
+            <strong id="remainingText">Rp 0</strong>
+            <p>Available balance</p>
+          </article>
+
+          <article class="summary-card">
+            <div class="card-top">
+              <span>Safe Daily Limit</span>
+              <strong class="card-icon">📅</strong>
+            </div>
+            <strong id="safeDailyText">Rp 0/day</strong>
+            <p>Recommended daily spending</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="status-section">
+        <article class="status-card" id="budgetStatusCard">
+          <div class="status-main">
+            <p class="eyebrow">Spending Health</p>
+            <h2 id="statusText">Danger</h2>
+            <p id="statusMessage">
+              Your daily spending limit is too low. Reduce unnecessary spending.
+            </p>
+          </div>
+          <div class="status-detail">
+            <span>Remaining Days</span>
+            <strong id="remainingDaysText">0</strong>
+          </div>
+        </article>
+      </section>
+
+      <section class="recommendation-section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Budget Method</p>
+            <h2 id="methodTitle">50/30/20 Rule</h2>
+            <p class="section-description" id="methodDescription">
+              A simple budgeting rule.
+            </p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Category / Group</th>
+                <th>Percentage</th>
+                <th>Monthly</th>
+                <th>Daily</th>
+                <th>Already Spent</th>
+              </tr>
+            </thead>
+            <tbody id="recommendationBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="expense-section">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Expense Tracking</p>
+            <h2>Add expense</h2>
+          </div>
+        </div>
+
+        <form id="expenseForm" class="expense-form">
+          <div class="form-group">
+            <label for="expenseCategory">Category</label>
+            <select id="expenseCategory"></select>
+            <p class="field-helper" id="mappedCategoryText">Group: -</p>
+          </div>
+
+          <div class="form-group">
+            <label for="expenseAmount">Amount</label>
+            <input
+              type="number"
+              id="expenseAmount"
+              min="0"
+              step="500"
+              placeholder="Example: 25000"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="expenseDate">Date</label>
+            <input type="date" id="expenseDate" />
+          </div>
+
+          <div class="form-group form-group-wide">
+            <label for="expenseNote">Note</label>
+            <input
+              type="text"
+              id="expenseNote"
+              maxlength="60"
+              placeholder="Example: Lunch"
+            />
+          </div>
+
+          <button type="submit">Add Expense</button>
+        </form>
+
+        <div class="transaction-list" id="transactionList"></div>
+      </section>
+    </main>
+
+    <div class="modal-overlay" id="setupModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Monthly Setup</p>
+            <h2>Setup Budget</h2>
+          </div>
+          <button type="button" class="icon-button" id="closeSetupButton">
+            ×
+          </button>
+        </div>
+
+        <form id="setupForm" class="modal-form">
+          <div class="form-group">
+            <label for="monthlyIncome">Monthly Income</label>
+            <input
+              type="number"
+              id="monthlyIncome"
+              min="0"
+              step="1000"
+              placeholder="Example: 2000000"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="budgetMethod">Budget Method</label>
+            <select id="budgetMethod">
+              <option value="rule503020">50/30/20 Rule</option>
+              <option value="payYourselfFirst">Pay Yourself First</option>
+              <option value="envelopeBudgeting">Envelope Budgeting</option>
+              <option value="zeroBasedBudgeting">Zero-Based Budgeting</option>
+            </select>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="secondary-button"
+              id="cancelSetupButton"
+            >
+              Cancel
+            </button>
+            <button type="submit">Save Setup</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
 </html>

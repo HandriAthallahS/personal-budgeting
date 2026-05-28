@@ -1,0 +1,521 @@
+:root {
+  --page-bg: #0f172a;
+  --card-bg: #111827;
+  --card-border: #1f2937;
+  --input-bg: #0b1220;
+  --text: #f9fafb;
+  --muted: #9ca3af;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 42px;
+  padding: 0 16px;
+}
+
+button:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1;
+}
+
+h2 {
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+
+h3 {
+  margin: 0;
+}
+
+.topbar {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 28px clamp(16px, 4vw, 32px) 18px;
+}
+
+.header-copy p,
+.section-description,
+.field-helper {
+  color: var(--muted);
+}
+.header-copy p {
+  margin-top: 8px;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.secondary-button {
+  background: transparent;
+  border-color: var(--card-border);
+  color: var(--text);
+}
+
+.secondary-button:hover {
+  background: #172033;
+  border-color: #334155;
+}
+
+.page {
+  display: grid;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 0 clamp(16px, 4vw, 32px) 42px;
+}
+
+section,
+.modal-card,
+.status-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+.section-title {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.summary-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.summary-card {
+  background: #0b1220;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  min-height: 150px;
+  padding: 18px;
+}
+
+.summary-card span,
+.summary-card p,
+.transaction-item span,
+.status-detail span,
+th {
+  color: var(--muted);
+}
+
+.summary-card > strong {
+  display: block;
+  font-size: 1.55rem;
+  margin-top: 16px;
+  overflow-wrap: anywhere;
+}
+
+.summary-card p {
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.card-top {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.card-icon {
+  background: #172033;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  display: grid;
+  height: 34px;
+  place-items: center;
+  width: 34px;
+}
+
+.status-section {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.status-card {
+  align-items: stretch;
+  display: flex;
+  gap: 22px;
+  justify-content: space-between;
+}
+
+.status-main {
+  display: grid;
+  gap: 8px;
+}
+
+.status-card h2 {
+  font-size: 2rem;
+}
+
+.status-card p:last-child {
+  color: var(--muted);
+}
+
+.status-detail {
+  align-self: center;
+  border-left: 1px solid var(--card-border);
+  min-width: 150px;
+  padding-left: 20px;
+}
+
+.status-detail strong {
+  display: block;
+  font-size: 1.7rem;
+  margin-top: 4px;
+}
+
+.status-card.status-aman {
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.status-card.status-waspada {
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.status-card.status-bahaya {
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.status-aman h2 {
+  color: var(--success);
+}
+
+.status-waspada h2 {
+  color: var(--warning);
+}
+
+.status-bahaya h2 {
+  color: var(--danger);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 780px;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--card-border);
+  padding: 14px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+}
+
+tbody tr:hover {
+  background: #172033;
+}
+
+td strong {
+  display: block;
+}
+
+.over-budget {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.under-budget {
+  color: var(--success);
+  font-weight: 800;
+}
+
+.expense-form,
+.modal-form {
+  display: grid;
+  gap: 14px;
+}
+
+.expense-form {
+  align-items: start;
+  background: #0b1220;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  grid-template-columns:
+    minmax(170px, 1.1fr) minmax(140px, 0.8fr) minmax(150px, 0.9fr)
+    minmax(190px, 1.2fr) auto;
+  padding: 14px;
+}
+
+.form-group {
+  display: grid;
+  gap: 7px;
+}
+
+label {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+input,
+select {
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  color: var(--text);
+  min-height: 44px;
+  padding: 0 12px;
+  width: 100%;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  outline: 0;
+}
+
+input::placeholder {
+  color: #64748b;
+}
+
+.field-helper {
+  font-size: 0.84rem;
+}
+
+.expense-form button {
+  align-self: start;
+  height: 44px;
+  margin-top: 26px;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.transaction-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.transaction-item {
+  align-items: center;
+  background: #0b1220;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1.2fr 1fr 1fr auto;
+  padding: 14px;
+}
+
+.transaction-item strong,
+.transaction-item span {
+  display: block;
+}
+
+.transaction-item span {
+  font-size: 0.9rem;
+}
+
+.delete-button {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: var(--danger);
+  min-height: 36px;
+  min-width: 74px;
+  padding: 0 12px;
+}
+
+.delete-button:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.empty-state {
+  border: 1px dashed #334155;
+  border-radius: 14px;
+  color: var(--muted);
+  padding: 18px;
+  text-align: center;
+}
+
+.modal-overlay {
+  align-items: center;
+  background: rgba(2, 6, 23, 0.78);
+  display: none;
+  inset: 0;
+  justify-content: center;
+  padding: 18px;
+  position: fixed;
+  z-index: 10;
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+.modal-card {
+  max-height: calc(100vh - 36px);
+  max-width: 480px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.modal-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.icon-button {
+  background: #172033;
+  border-color: var(--card-border);
+  color: var(--text);
+  font-size: 1.4rem;
+  height: 38px;
+  min-height: 38px;
+  padding: 0;
+  width: 38px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@media (max-width: 980px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .expense-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-group-wide {
+    grid-column: 1 / -1;
+  }
+
+  .expense-form button {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .topbar,
+  .section-title,
+  .status-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+  }
+
+  .summary-grid,
+  .expense-form,
+  .transaction-item {
+    grid-template-columns: 1fr;
+  }
+
+  section,
+  .status-card,
+  .modal-card {
+    padding: 18px;
+  }
+
+  .status-detail {
+    align-self: stretch;
+    border-left: 0;
+    border-top: 1px solid var(--card-border);
+    min-width: 0;
+    padding-left: 0;
+    padding-top: 14px;
+  }
+
+  .expense-form button {
+    margin-top: 0;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+}
