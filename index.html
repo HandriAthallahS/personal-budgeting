@@ -10,10 +10,12 @@
     <header class="topbar">
       <div class="header-copy">
         <h1>Personal Budgeting</h1>
-        <p>Track expenses and manage your monthly budget with simple methods</p>
       </div>
 
       <div class="header-actions">
+        <button type="button" class="secondary-button" id="viewHistoryButton">
+          View Monthly History
+        </button>
         <button type="button" id="setupBudgetButton">+ Monthly Setup</button>
       </div>
     </header>
@@ -115,6 +117,9 @@
             <p class="eyebrow">Expense Tracking</p>
             <h2>Add expense</h2>
           </div>
+          <p class="readonly-note" id="readOnlyNote">
+            Previous months are read-only.
+          </p>
         </div>
 
         <form id="expenseForm" class="expense-form">
@@ -154,6 +159,7 @@
         </form>
 
         <div class="transaction-list" id="transactionList"></div>
+        <div class="pagination" id="expensePagination"></div>
       </section>
     </main>
 
@@ -202,6 +208,22 @@
             <button type="submit">Save Setup</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="historyModal">
+      <div class="modal-card modal-card-large">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Monthly History</p>
+            <h2 id="historyModalTitle">History</h2>
+          </div>
+          <button type="button" class="icon-button" id="closeHistoryButton">
+            ×
+          </button>
+        </div>
+
+        <div id="historyContent"></div>
       </div>
     </div>
 

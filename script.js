@@ -145,11 +145,19 @@ let appData = loadData();
 checkNewMonth();
 
 let viewedMonth = appData.activeMonth;
+let currentExpensePage = 1;
+let currentHistoryTransactionPage = 1;
+const transactionsPerPage = 5;
 
+const viewHistoryButton = document.getElementById("viewHistoryButton");
 const setupBudgetButton = document.getElementById("setupBudgetButton");
 const setupModal = document.getElementById("setupModal");
+const historyModal = document.getElementById("historyModal");
 const closeSetupButton = document.getElementById("closeSetupButton");
 const cancelSetupButton = document.getElementById("cancelSetupButton");
+const closeHistoryButton = document.getElementById("closeHistoryButton");
+const historyModalTitle = document.getElementById("historyModalTitle");
+const historyContent = document.getElementById("historyContent");
 const setupForm = document.getElementById("setupForm");
 const monthlyIncomeInput = document.getElementById("monthlyIncome");
 const budgetMethodSelect = document.getElementById("budgetMethod");
@@ -172,13 +180,17 @@ const expenseAmountInput = document.getElementById("expenseAmount");
 const expenseDateInput = document.getElementById("expenseDate");
 const expenseNoteInput = document.getElementById("expenseNote");
 const transactionList = document.getElementById("transactionList");
+const expensePagination = document.getElementById("expensePagination");
+const readOnlyNote = document.getElementById("readOnlyNote");
 
 setupForm.addEventListener("submit", saveSetup);
 expenseForm.addEventListener("submit", addExpense);
 expenseCategorySelect.addEventListener("change", updateMappedCategory);
 setupBudgetButton.addEventListener("click", openSetupModal);
+viewHistoryButton.addEventListener("click", openHistoryModal);
 closeSetupButton.addEventListener("click", closeSetupModal);
 cancelSetupButton.addEventListener("click", closeSetupModal);
+closeHistoryButton.addEventListener("click", closeHistoryModal);
 
 renderApp();
 
@@ -249,6 +261,19 @@ function renderApp() {
   renderRecommendations();
   renderExpenseForm();
   renderTransactions();
+}
+
+function getMonthKeysNewestFirst() {
+  const keys = [];
+
+  for (const monthKey in appData.months) {
+    keys.push(monthKey);
+  }
+
+  keys.sort();
+  keys.reverse();
+
+  return keys;
 }
 
 function renderSetup() {
@@ -349,12 +374,23 @@ function renderExpenseForm() {
   expenseDateInput.disabled = !isActiveMonth;
   expenseNoteInput.disabled = !isActiveMonth;
   expenseForm.querySelector("button").disabled = !isActiveMonth;
+
+  if (isActiveMonth) {
+    readOnlyNote.classList.remove("show");
+  } else {
+    readOnlyNote.classList.add("show");
+  }
 }
 
 function renderTransactions() {
   const monthData = appData.months[viewedMonth];
+  const isActiveMonth = viewedMonth === appData.activeMonth;
+  const totalPages = getTotalExpensePages(monthData.transactions.length);
+  let startIndex = 0;
+  let endIndex = startIndex + transactionsPerPage;
 
   transactionList.innerHTML = "";
+  expensePagination.innerHTML = "";
 
   if (monthData.transactions.length === 0) {
     transactionList.innerHTML =
@@ -362,13 +398,24 @@ function renderTransactions() {
     return;
   }
 
-  for (let i = 0; i < monthData.transactions.length; i++) {
+  if (currentExpensePage > totalPages) {
+    currentExpensePage = totalPages;
+  }
+
+  startIndex = (currentExpensePage - 1) * transactionsPerPage;
+  endIndex = startIndex + transactionsPerPage;
+
+  if (endIndex > monthData.transactions.length) {
+    endIndex = monthData.transactions.length;
+  }
+
+  for (let i = startIndex; i < endIndex; i++) {
     const transaction = monthData.transactions[i];
     const expenseType = transaction.expenseType || transaction.category;
     let budgetGroup = transaction.category;
 
     if (transaction.expenseType) {
-      budgetGroup = getbudgetGroupForExpenseType(
+      budgetGroup = getBudgetGroupForExpenseType(
         transaction.expenseType,
         monthData.selectedMethod,
       );
@@ -376,6 +423,17 @@ function renderTransactions() {
 
     const item = document.createElement("article");
     item.className = "transaction-item";
+
+    let buttonHtml = "";
+
+    if (isActiveMonth) {
+      buttonHtml =
+        '<button class="delete-button" data-id="' +
+        transaction.id +
+        '">Delete</button>';
+    } else {
+      buttonHtml = "<span>Read-only</span>";
+    }
 
     let noteHtml = "";
 
@@ -397,14 +455,15 @@ function renderTransactions() {
       "<div><strong>" +
       transaction.date +
       "</strong><span>Date</span></div>" +
-      '<div><button class="delete-button" data-id="' +
-      transaction.id +
-      '">Delete</button></div>';
+      "<div>" +
+      buttonHtml +
+      "</div>";
 
     transactionList.appendChild(item);
   }
 
   addDeleteButtonEvents();
+  renderExpensePagination(totalPages);
 }
 
 function addDeleteButtonEvents() {
@@ -415,6 +474,92 @@ function addDeleteButtonEvents() {
   }
 }
 
+function renderExpensePagination(totalPages) {
+  if (totalPages <= 1) {
+    expensePagination.innerHTML = "";
+    return;
+  }
+
+  let paginationHtml = "";
+
+  paginationHtml +=
+    '<button type="button" class="page-button" id="prevExpensePage">Previous</button>';
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === currentExpensePage) {
+      paginationHtml +=
+        '<button type="button" class="page-button active" data-page="' +
+        i +
+        '">' +
+        i +
+        "</button>";
+    } else {
+      paginationHtml +=
+        '<button type="button" class="page-button" data-page="' +
+        i +
+        '">' +
+        i +
+        "</button>";
+    }
+  }
+
+  paginationHtml +=
+    '<button type="button" class="page-button" id="nextExpensePage">Next</button>';
+
+  expensePagination.innerHTML = paginationHtml;
+
+  document.getElementById("prevExpensePage").disabled =
+    currentExpensePage === 1;
+  document.getElementById("nextExpensePage").disabled =
+    currentExpensePage === totalPages;
+
+  document
+    .getElementById("prevExpensePage")
+    .addEventListener("click", goToPreviousExpensePage);
+  document
+    .getElementById("nextExpensePage")
+    .addEventListener("click", goToNextExpensePage);
+  addExpensePageButtonEvents();
+}
+
+function addExpensePageButtonEvents() {
+  const buttons = document.querySelectorAll(".page-button[data-page]");
+
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", goToExpensePage);
+  }
+}
+
+function goToPreviousExpensePage() {
+  if (currentExpensePage > 1) {
+    currentExpensePage--;
+    renderTransactions();
+  }
+}
+
+function goToNextExpensePage() {
+  const monthData = appData.months[viewedMonth];
+  const totalPages = getTotalExpensePages(monthData.transactions.length);
+
+  if (currentExpensePage < totalPages) {
+    currentExpensePage++;
+    renderTransactions();
+  }
+}
+
+function goToExpensePage(event) {
+  currentExpensePage = Number(event.target.getAttribute("data-page"));
+  renderTransactions();
+}
+
+function getTotalExpensePages(transactionCount) {
+  return Math.ceil(transactionCount / transactionsPerPage);
+}
+
+function getTotalHistoryTransactionPages(transactionCount) {
+  return Math.ceil(transactionCount / transactionsPerPage);
+}
+
 function openSetupModal() {
   renderSetup();
   setupModal.classList.add("show");
@@ -423,6 +568,249 @@ function openSetupModal() {
 function closeSetupModal() {
   setupModal.classList.remove("show");
   renderSetup();
+}
+
+function openHistoryModal() {
+  renderHistoryList();
+  historyModal.classList.add("show");
+}
+
+function closeHistoryModal() {
+  historyModal.classList.remove("show");
+}
+
+function renderHistoryList() {
+  const monthKeys = getMonthKeysNewestFirst();
+  let historyHtml = '<div class="history-list">';
+  let historyCount = 0;
+
+  historyModalTitle.textContent = "History";
+
+  for (let i = 0; i < monthKeys.length; i++) {
+    const monthKey = monthKeys[i];
+
+    if (monthKey !== appData.activeMonth) {
+      const monthData = appData.months[monthKey];
+      const totalExpenses = calculateTotalExpenses(monthData.transactions);
+      const remainingBalance = monthData.monthlyIncome - totalExpenses;
+      const balanceClass = getHistoryBalanceClass(remainingBalance);
+
+      historyHtml +=
+        '<article class="history-row">' +
+        "<strong>" +
+        formatMonthName(monthKey) +
+        "</strong>" +
+        '<span class="' +
+        balanceClass +
+        '">' +
+        formatSignedRupiah(remainingBalance) +
+        "</span>" +
+        '<button type="button" class="secondary-button history-detail-button" data-month="' +
+        monthKey +
+        '">View Detail</button>' +
+        "</article>";
+
+      historyCount++;
+    }
+  }
+
+  historyHtml += "</div>";
+
+  if (historyCount === 0) {
+    historyContent.innerHTML =
+      '<p class="empty-state">No previous history yet.</p>';
+  } else {
+    historyContent.innerHTML = historyHtml;
+    addHistoryDetailEvents();
+  }
+}
+
+function addHistoryDetailEvents() {
+  const buttons = document.querySelectorAll(".history-detail-button");
+
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].addEventListener("click", openHistoryDetail);
+  }
+}
+
+function openHistoryDetail(event) {
+  const monthKey = event.target.getAttribute("data-month");
+  currentHistoryTransactionPage = 1;
+  renderHistoryDetail(monthKey);
+}
+
+function renderHistoryDetail(monthKey) {
+  const monthData = appData.months[monthKey];
+  const totalExpenses = calculateTotalExpenses(monthData.transactions);
+  const remainingBalance = monthData.monthlyIncome - totalExpenses;
+  const averageDailySpending = totalExpenses / getDaysInMonth(monthKey);
+  const method = budgetMethods[monthData.selectedMethod];
+  const biggestCategory = getBiggestSpendingCategory(monthData);
+  let transactionHtml = "";
+  const totalHistoryPages = getTotalHistoryTransactionPages(
+    monthData.transactions.length,
+  );
+
+  if (currentHistoryTransactionPage > totalHistoryPages) {
+    currentHistoryTransactionPage = totalHistoryPages;
+  }
+
+  if (currentHistoryTransactionPage < 1) {
+    currentHistoryTransactionPage = 1;
+  }
+
+  let startIndex = (currentHistoryTransactionPage - 1) * transactionsPerPage;
+  let endIndex = startIndex + transactionsPerPage;
+
+  if (endIndex > monthData.transactions.length) {
+    endIndex = monthData.transactions.length;
+  }
+
+  historyModalTitle.textContent = formatMonthName(monthKey);
+
+  for (let i = startIndex; i < endIndex; i++) {
+    const transaction = monthData.transactions[i];
+    const transactionCategory = transaction.expenseType || transaction.category;
+
+    transactionHtml +=
+      '<article class="transaction-item">' +
+      "<div><strong>" +
+      transactionCategory +
+      "</strong><span>" +
+      transaction.note +
+      "</span></div>" +
+      "<div><strong>" +
+      formatRupiah(transaction.amount) +
+      "</strong><span>Amount</span></div>" +
+      "<div><strong>" +
+      transaction.date +
+      "</strong><span>Date</span></div>" +
+      "<div><span>Read-only</span></div>" +
+      "</article>";
+  }
+
+  if (monthData.transactions.length === 0) {
+    transactionHtml =
+      '<p class="empty-state">No expenses recorded for this month.</p>';
+  }
+
+  historyContent.innerHTML =
+    '<div class="detail-actions">' +
+    '<button type="button" class="secondary-button" id="backToHistoryButton">Back to History</button>' +
+    "</div>" +
+    '<div class="detail-grid">' +
+    createDetailCard("Monthly Income", formatRupiah(monthData.monthlyIncome)) +
+    createDetailCard("Total Expenses", formatRupiah(totalExpenses)) +
+    createDetailCard(
+      "Remaining Balance",
+      formatSignedRupiah(remainingBalance),
+    ) +
+    createDetailCard("Budget Method", method.name) +
+    createDetailCard("Biggest Spending Category", biggestCategory) +
+    createDetailCard(
+      "Average Daily Spending",
+      formatRupiah(averageDailySpending) + "/day",
+    ) +
+    "</div>" +
+    '<h3 class="detail-heading">Read-only transactions</h3>' +
+    '<div class="transaction-list">' +
+    transactionHtml +
+    "</div>" +
+    '<div class="pagination" id="historyTransactionPagination"></div>';
+
+  document
+    .getElementById("backToHistoryButton")
+    .addEventListener("click", renderHistoryList);
+  renderHistoryTransactionPage(monthKey, totalHistoryPages);
+}
+
+function renderHistoryTransactionPage(monthKey, totalPages) {
+  const paginationContainer = document.getElementById(
+    "historyTransactionPagination",
+  );
+
+  if (!paginationContainer) {
+    return;
+  }
+
+  if (totalPages <= 1) {
+    paginationContainer.innerHTML = "";
+    return;
+  }
+
+  let paginationHtml = "";
+
+  paginationHtml +=
+    '<button type="button" class="page-button" id="prevHistoryTransactionPage">Previous</button>';
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === currentHistoryTransactionPage) {
+      paginationHtml +=
+        '<button type="button" class="page-button active" data-history-page="' +
+        i +
+        '">' +
+        i +
+        "</button>";
+    } else {
+      paginationHtml +=
+        '<button type="button" class="page-button" data-history-page="' +
+        i +
+        '">' +
+        i +
+        "</button>";
+    }
+  }
+
+  paginationHtml +=
+    '<button type="button" class="page-button" id="nextHistoryTransactionPage">Next</button>';
+
+  paginationContainer.innerHTML = paginationHtml;
+
+  document.getElementById("prevHistoryTransactionPage").disabled =
+    currentHistoryTransactionPage === 1;
+  document.getElementById("nextHistoryTransactionPage").disabled =
+    currentHistoryTransactionPage === totalPages;
+
+  document
+    .getElementById("prevHistoryTransactionPage")
+    .addEventListener("click", function () {
+      if (currentHistoryTransactionPage > 1) {
+        currentHistoryTransactionPage--;
+        renderHistoryDetail(monthKey);
+      }
+    });
+
+  document
+    .getElementById("nextHistoryTransactionPage")
+    .addEventListener("click", function () {
+      if (currentHistoryTransactionPage < totalPages) {
+        currentHistoryTransactionPage++;
+        renderHistoryDetail(monthKey);
+      }
+    });
+
+  const pageButtons = document.querySelectorAll(
+    ".page-button[data-history-page]",
+  );
+
+  for (let i = 0; i < pageButtons.length; i++) {
+    pageButtons[i].addEventListener("click", function (event) {
+      currentHistoryTransactionPage = Number(
+        event.target.getAttribute("data-history-page"),
+      );
+      renderHistoryDetail(monthKey);
+    });
+  }
+}
+
+function createDetailCard(label, value) {
+  return (
+    '<article class="detail-card"><span>' +
+    label +
+    "</span><strong>" +
+    value +
+    "</strong></article>"
+  );
 }
 
 function saveSetup(event) {
@@ -462,7 +850,7 @@ function addExpense(event) {
   }
 
   const expenseType = expenseCategorySelect.value;
-  const budgetGroup = getbudgetGroupForExpenseType(
+  const budgetGroup = getBudgetGroupForExpenseType(
     expenseType,
     monthData.selectedMethod,
   );
@@ -477,6 +865,8 @@ function addExpense(event) {
   };
 
   monthData.transactions.push(transaction);
+  currentExpensePage = getTotalExpensePages(monthData.transactions.length);
+
   expenseAmountInput.value = "";
   expenseNoteInput.value = "";
 
@@ -497,6 +887,16 @@ function deleteExpense(event) {
 
   monthData.transactions = newTransactions;
 
+  if (
+    currentExpensePage > getTotalExpensePages(monthData.transactions.length)
+  ) {
+    currentExpensePage = getTotalExpensePages(monthData.transactions.length);
+  }
+
+  if (currentExpensePage < 1) {
+    currentExpensePage = 1;
+  }
+
   saveData();
   renderApp();
 }
@@ -504,7 +904,7 @@ function deleteExpense(event) {
 function updateMappedCategory() {
   const monthData = appData.months[viewedMonth];
   const expenseType = expenseCategorySelect.value;
-  const budgetGroup = getbudgetGroupForExpenseType(
+  const budgetGroup = getBudgetGroupForExpenseType(
     expenseType,
     monthData.selectedMethod,
   );
@@ -558,7 +958,7 @@ function checkOverDailyMethodBudget(monthData) {
         let transactionCategory = transaction.category;
 
         if (transaction.expenseType) {
-          transactionCategory = getbudgetGroupForExpenseType(
+          transactionCategory = getBudgetGroupForExpenseType(
             transaction.expenseType,
             monthData.selectedMethod,
           );
@@ -585,7 +985,7 @@ function calculateCategoryExpenses(transactions, categoryName, methodKey) {
     let transactionCategory = transactions[i].category;
 
     if (transactions[i].expenseType) {
-      transactionCategory = getbudgetGroupForExpenseType(
+      transactionCategory = getBudgetGroupForExpenseType(
         transactions[i].expenseType,
         methodKey,
       );
@@ -599,7 +999,7 @@ function calculateCategoryExpenses(transactions, categoryName, methodKey) {
   return total;
 }
 
-function getbudgetGroupForExpenseType(expenseTypeName, methodKey) {
+function getBudgetGroupForExpenseType(expenseTypeName, methodKey) {
   for (let i = 0; i < expenseTypes.length; i++) {
     if (expenseTypes[i].name === expenseTypeName) {
       return expenseTypes[i][methodKey];
@@ -674,6 +1074,65 @@ function getSpentClass(spent, recommendation) {
   }
 }
 
+function getHistoryBalanceClass(amount) {
+  if (amount > 0) {
+    return "history-balance-positive";
+  } else if (amount < 0) {
+    return "history-balance-negative";
+  } else {
+    return "history-balance-zero";
+  }
+}
+
+function getBiggestSpendingCategory(monthData) {
+  const categoryNames = [];
+  const categoryTotals = [];
+
+  for (let i = 0; i < monthData.transactions.length; i++) {
+    const transaction = monthData.transactions[i];
+    let categoryName = transaction.category;
+    let categoryFound = false;
+
+    if (transaction.expenseType) {
+      categoryName = getBudgetGroupForExpenseType(
+        transaction.expenseType,
+        monthData.selectedMethod,
+      );
+    }
+
+    for (let j = 0; j < categoryNames.length; j++) {
+      if (categoryNames[j] === categoryName) {
+        categoryTotals[j] += transaction.amount;
+        categoryFound = true;
+      }
+    }
+
+    if (!categoryFound) {
+      categoryNames.push(categoryName);
+      categoryTotals.push(transaction.amount);
+    }
+  }
+
+  if (categoryNames.length === 0) {
+    return "No spending yet";
+  }
+
+  let biggestIndex = 0;
+
+  for (let k = 1; k < categoryTotals.length; k++) {
+    if (categoryTotals[k] > categoryTotals[biggestIndex]) {
+      biggestIndex = k;
+    }
+  }
+
+  return (
+    categoryNames[biggestIndex] +
+    " (" +
+    formatRupiah(categoryTotals[biggestIndex]) +
+    ")"
+  );
+}
+
 function getDaysInMonth(monthKey) {
   const parts = monthKey.split("-");
   const year = Number(parts[0]);
@@ -711,4 +1170,17 @@ function formatRupiah(amount) {
   const formatter = new Intl.NumberFormat("id-ID");
 
   return "Rp " + formatter.format(roundedAmount);
+}
+
+function formatSignedRupiah(amount) {
+  const roundedAmount = Math.round(amount);
+  const formatter = new Intl.NumberFormat("id-ID");
+
+  if (roundedAmount > 0) {
+    return "+Rp " + formatter.format(roundedAmount);
+  } else if (roundedAmount < 0) {
+    return "-Rp " + formatter.format(Math.abs(roundedAmount));
+  } else {
+    return "Rp 0";
+  }
 }
